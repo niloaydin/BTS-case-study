@@ -1,5 +1,23 @@
 {
   "dependencies": {
     "lightweight-charts": "^3.8.0"
-  }
+  },
+  "name": "binance-chart",
+  "version": "1.0.0",
+  "main": "chart.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/niloaydin/BTS-case-study.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/niloaydin/BTS-case-study/issues"
+  },
+  "homepage": "https://github.com/niloaydin/BTS-case-study#readme",
+  "description": ""
 }
