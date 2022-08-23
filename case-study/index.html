@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dimensional Charting</title>
+
+      <link rel="stylesheet" type="text/css" href="http://dc-js.github.io/dc.js/css/dc.css"/>
+        <script type="text/javascript" src="http://dc-js.github.io/dc.js/js/d3.js"></script>
+        <script type="text/javascript" src="http://dc-js.github.io/dc.js/js/crossfilter.js"></script>
+        <script type="text/javascript" src="http://dc-js.github.io/dc.js/js/dc.js"></script>
+</head>
+
+<body>
+
+<div id="chart-ring-year">
+    <h1>Ring chart for the number of spendings per years</h1>
+</div>
+<div id="chart-row-spenders">
+    <h1>Row chart for the total spendings per name</h1>
+</div>
+
+<script type="text/javascript">
+
+    let yearRingChart   = dc.pieChart("#chart-ring-year"),
+        spenderRowChart = dc.rowChart("#chart-row-spenders");
+
+    let connection = new WebSocket('ws://localhost:5678');
+
+    let data1 = [
+        {Name: 'Nilay', Spent: 100, Year: 2016, total: 200},
+        {Name: 'Nuriye', Spent: 100, Year: 2017, total: 200 },
+        {Name: 'Neyzen', Spent: 100, Year: 2017, total: 200},
+        {Name: 'Nejdet', Spent: 100, Year: 2018, total: 200},
+
+    ];
+
+    // set crossfilter with first dataset
+    let xfilter = crossfilter(data1),
+        yearProperty  = xfilter.dimension(function(d) {return +d.Year;}),
+        spendProperty = xfilter.dimension(function(d) {return Math.floor(d.Spent/100);}),
+        nameProperty  = xfilter.dimension(function(d) {return d.Name;}),
+        totalProperty = xfilter.dimension(function(d) {return d.Total})
+
+        spendPerYear = yearProperty.group().reduceSum(function(d) {return +d.Spent;}),
+        spendPerName = nameProperty.group().reduceSum(function(d) {return +d.Spent;});
+        totalPerName = nameProperty.group().reduceSum(function(d) {return +d.total})
+
+    function render_chart(){
+        yearRingChart
+            .width(300).height(300)
+            .dimension(yearProperty)
+            .group(spendPerYear)
+            .innerRadius(50);
+
+        spenderRowChart
+            .width(550).height(300)
+            .dimension(nameProperty)
+            .group(totalPerName)
+            .elasticX(true);
+
+        dc.renderAll();
+    }
+
+    render_chart();
+
+    // data reset function (adapted)
+    function resetData(ndx, dimensions) {
+        let yearChartFilters = yearRingChart.filters();
+        let spenderChartFilters = spenderRowChart.filters();
+
+        yearRingChart.filter(null);
+        spenderRowChart.filter(null);
+
+        xfilter.remove();
+
+        yearRingChart.filter([yearChartFilters]);
+        spenderRowChart.filter([spenderChartFilters]);
+
+    }
+
+
+
+    connection.onmessage = function(event) {
+        let newData = JSON.parse(event.data);
+        let updateObject =[{
+            "Name": newData.Name,
+            "Year": newData.Year,
+            "Spent": newData.Spent,
+            "payType": newData.payType,
+            "total": newData.total
+        }]
+        //resetData(ndx, [yearProperty, spendProperty, nameProperty]);
+        xfilter.add(updateObject);
+        dc.redrawAll();
+    }
+
+</script>
+
+</body>
+
+</html>
